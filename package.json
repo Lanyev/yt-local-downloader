@@ -1,0 +1,29 @@
+{
+  "name": "yt-local-downloader",
+  "version": "1.0.0",
+  "description": "Aplicación local para descargar y procesar videos/audio de YouTube",
+  "main": "backend/app.js",
+  "scripts": {
+    "start": "node backend/app.js",
+    "dev": "nodemon backend/app.js",
+    "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1",
+    "clean": "powershell -Command \"Remove-Item -Recurse -Force backend/tmp/* -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force backend/output/* -ErrorAction SilentlyContinue\"",
+    "test": "echo \"Tests no implementados aún\"",
+    "lint": "echo \"Linting no configurado aún\""
+  },
+  "keywords": ["youtube", "downloader", "audio", "video", "mp3", "mp4", "local"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1",
+    "archiver": "^6.0.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "node-id3": "^0.2.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

@@ -1,0 +1,512 @@
+/**
+ * Estilos CSS para YouTube Local Downloader
+ * Diseño moderno y responsivo con tema oscuro/claro
+ * 
+ * TODO: Implementar estilos para:
+ * - Layout principal y responsive design
+ * - Formularios y controles interactivos
+ * - Barras de progreso y indicadores de estado
+ * - Lista de trabajos y tarjetas
+ * - Modales y notificaciones toast
+ * - Tema oscuro/claro (opcional)
+ */
+
+/* TODO: Variables CSS para tema */
+:root {
+    --primary-color: #ff0000;
+    --primary-hover: #cc0000;
+    --secondary-color: #666;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-card: #ffffff;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --border-color: #dee2e6;
+    
+    --border-radius: 8px;
+    --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --transition: all 0.3s ease;
+}
+
+/* TODO: Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+}
+
+/* TODO: Layout principal */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem 0;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+header p {
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+main {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: 1fr;
+}
+
+/* TODO: Estilos de secciones */
+section {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    border: 1px solid var(--border-color);
+}
+
+section h2 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* TODO: Estilos de formulario */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+textarea, select, input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: var(--transition);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+textarea:focus, select:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: monospace;
+}
+
+/* TODO: Estilos de radio buttons */
+.radio-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.radio-group input[type="radio"] {
+    width: auto;
+    margin-right: 0.25rem;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.radio-group input[type="radio"]:checked + label {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* TODO: Estilos de botones */
+button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+}
+
+.btn-secondary {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #555;
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #218838;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* TODO: Estilos de progreso */
+.progress-monitor {
+    border-left: 4px solid var(--primary-color);
+}
+
+.job-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+}
+
+.job-id, .job-status {
+    font-family: monospace;
+}
+
+.job-status span {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* TODO: Barra de progreso */
+.progress-bar {
+    position: relative;
+    height: 30px;
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+    width: 0%;
+    transition: width 0.5s ease;
+    border-radius: 15px;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.current-stage {
+    text-align: center;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin: 1rem 0;
+}
+
+.urls-progress {
+    text-align: center;
+    font-weight: 500;
+    margin: 1rem 0;
+}
+
+.control-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+/* TODO: Lista de trabajos */
+.jobs-filter {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.5rem 1rem;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    font-size: 0.875rem;
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.filter-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+#jobs-container {
+    min-height: 200px;
+}
+
+.no-jobs {
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 2rem;
+}
+
+/* TODO: Tarjetas de trabajo */
+.job-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: var(--transition);
+}
+
+.job-card:hover {
+    box-shadow: var(--box-shadow);
+    transform: translateY(-2px);
+}
+
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.job-card-title {
+    font-weight: 500;
+    font-family: monospace;
+}
+
+.job-card-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-pending { background: var(--warning-color); color: white; }
+.status-processing { background: var(--info-color); color: white; }
+.status-completed { background: var(--success-color); color: white; }
+.status-failed { background: var(--danger-color); color: white; }
+.status-cancelled { background: var(--secondary-color); color: white; }
+
+/* TODO: Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+/* TODO: Notificaciones toast */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1100;
+}
+
+.toast {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    box-shadow: var(--box-shadow);
+    min-width: 300px;
+    animation: slideIn 0.3s ease;
+}
+
+.toast.error {
+    border-left: 4px solid var(--danger-color);
+}
+
+.toast.success {
+    border-left: 4px solid var(--success-color);
+}
+
+.toast.info {
+    border-left: 4px solid var(--info-color);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* TODO: Responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .radio-group {
+        flex-direction: column;
+    }
+    
+    .job-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .control-buttons {
+        flex-direction: column;
+    }
+    
+    .modal-content {
+        width: 95%;
+        padding: 1rem;
+    }
+}
+
+@media (min-width: 769px) {
+    main {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: 
+            "form progress"
+            "jobs jobs";
+    }
+    
+    .download-form {
+        grid-area: form;
+    }
+    
+    .progress-monitor {
+        grid-area: progress;
+    }
+    
+    .jobs-list {
+        grid-area: jobs;
+    }
+}
+
+/* TODO: Modo oscuro (opcional) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2d2d2d;
+        --bg-card: #242424;
+        --text-primary: #ffffff;
+        --text-secondary: #cccccc;
+        --border-color: #404040;
+    }
+}
+
+/* TODO: Estilos de impresión */
+@media print {
+    .control-buttons,
+    .progress-monitor,
+    button {
+        display: none !important;
+    }
+}
