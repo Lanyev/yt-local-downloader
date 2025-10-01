@@ -1,125 +1,91 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Local Downloader</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YT Local Downloader</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🎵 YouTube Local Downloader</h1>
-            <p>Descarga y procesa videos de YouTube localmente</p>
-        </header>
+  <div class="container">
+    <header class="site-header">
+      <h1>🎬 YT Local Downloader</h1>
+      <p>Descarga videos y audios de YouTube de forma local</p>
+    </header>
 
-        <main>
-            <!-- TODO: Formulario de configuración de descarga -->
-            <section class="download-form">
-                <h2>📥 Nueva Descarga</h2>
-                
-                <!-- TODO: Campo para URLs múltiples -->
-                <div class="form-group">
-                    <label for="urls">URLs de YouTube (una por línea):</label>
-                    <textarea id="urls" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/..."></textarea>
-                </div>
+    <main>
+      <!-- Entrada -->
+      <section class="input-section" aria-labelledby="input-section-title">
+        <h2 id="input-section-title" class="visually-hidden">Entrada de enlaces y opciones</h2>
 
-                <!-- TODO: Opciones de formato -->
-                <div class="form-group">
-                    <label>Formato de salida:</label>
-                    <div class="radio-group">
-                        <input type="radio" id="mp3-only" name="format" value="mp3" checked>
-                        <label for="mp3-only">Solo MP3</label>
-                        
-                        <input type="radio" id="mp4-only" name="format" value="mp4">
-                        <label for="mp4-only">Solo MP4</label>
-                        
-                        <input type="radio" id="both" name="format" value="both">
-                        <label for="both">MP3 + MP4</label>
-                    </div>
-                </div>
-
-                <!-- TODO: Opciones de segmentación -->
-                <div class="form-group">
-                    <label for="segment">Partir MP3 en segmentos:</label>
-                    <select id="segment">
-                        <option value="0">Sin partir</option>
-                        <option value="1">1 minuto</option>
-                        <option value="5">5 minutos</option>
-                        <option value="10">10 minutos</option>
-                        <option value="15">15 minutos</option>
-                        <option value="20">20 minutos</option>
-                    </select>
-                </div>
-
-                <!-- TODO: Botón de inicio -->
-                <button id="start-download" class="btn-primary">
-                    🚀 Iniciar Descarga
-                </button>
-            </section>
-
-            <!-- TODO: Monitor de progreso -->
-            <section class="progress-monitor" style="display: none;">
-                <h2>📊 Progreso</h2>
-                
-                <div class="job-info">
-                    <div class="job-id">Job ID: <span id="current-job-id">-</span></div>
-                    <div class="job-status">Estado: <span id="job-status">-</span></div>
-                </div>
-
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill"></div>
-                    <div class="progress-text" id="progress-text">0%</div>
-                </div>
-
-                <div class="current-stage" id="current-stage">
-                    Preparando...
-                </div>
-
-                <div class="urls-progress" id="urls-progress">
-                    Videos procesados: <span id="processed-count">0</span> / <span id="total-count">0</span>
-                </div>
-
-                <!-- TODO: Botones de control -->
-                <div class="control-buttons">
-                    <button id="cancel-job" class="btn-secondary">❌ Cancelar</button>
-                    <button id="download-files" class="btn-success" style="display: none;">📦 Descargar Archivos</button>
-                </div>
-            </section>
-
-            <!-- TODO: Lista de trabajos activos/completados -->
-            <section class="jobs-list">
-                <h2>📋 Trabajos</h2>
-                
-                <div class="jobs-filter">
-                    <button class="filter-btn active" data-filter="all">Todos</button>
-                    <button class="filter-btn" data-filter="active">Activos</button>
-                    <button class="filter-btn" data-filter="completed">Completados</button>
-                    <button class="filter-btn" data-filter="failed">Fallidos</button>
-                </div>
-
-                <div id="jobs-container">
-                    <!-- TODO: Los trabajos se llenarán desde JavaScript -->
-                    <div class="no-jobs">
-                        No hay trabajos disponibles
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- TODO: Modal para detalles de trabajo -->
-        <div id="job-modal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="modal-close">&times;</span>
-                <h3>Detalles del Trabajo</h3>
-                <div id="job-details"></div>
-            </div>
+        <div class="form-group">
+          <label for="links">Links de YouTube (uno por línea):</label>
+          <textarea
+            id="links"
+            rows="6"
+            placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..."
+          ></textarea>
         </div>
 
-        <!-- TODO: Notificaciones toast -->
-        <div id="toast-container"></div>
-    </div>
+        <div class="form-group">
+          <span class="label">Formato:</span>
+          <div class="checkbox-group" role="group" aria-label="Selecciona formato de salida">
+            <label class="checkbox-label">
+              <input type="checkbox" id="videoFormat" value="mp4" checked />
+              <span>Video (mp4)</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="audioFormat" value="mp3" />
+              <span>Audio (mp3)</span>
+            </label>
+          </div>
+        </div>
 
-    <script src="main.js"></script>
+        <div class="form-group">
+          <label for="splitMinutes">Dividir en partes (minutos):</label>
+          <select id="splitMinutes">
+            <option value="0">Sin partir</option>
+            <option value="1">1 minuto</option>
+            <option value="5">5 minutos</option>
+            <option value="10">10 minutos</option>
+            <option value="15">15 minutos</option>
+            <option value="20">20 minutos</option>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button id="processBtn" class="btn-primary" type="button" aria-live="polite">
+            <span class="btn-text">Procesar</span>
+            <span class="btn-loader" hidden>⏳ Procesando...</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Resultados -->
+      <section class="results-section" id="resultsSection" aria-labelledby="results-title" hidden>
+        <h2 id="results-title">Progreso de Descargas</h2>
+        <div class="table-container">
+          <table id="progressTable">
+            <thead>
+              <tr>
+                <th scope="col">Video</th>
+                <th scope="col">Formato</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Progreso</th>
+                <th scope="col">Descarga</th>
+              </tr>
+            </thead>
+            <tbody id="progressTableBody"><!-- filas dinámicas --></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Powered by yt-dlp &amp; FFmpeg</p>
+    </footer>
+  </div>
+
+  <script src="main.js"></script>
 </body>
 </html>
