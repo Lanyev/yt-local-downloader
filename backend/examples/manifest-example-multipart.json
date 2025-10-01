@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "createdAt": "2025-09-30T16:00:00.000Z",
+  "video": {
+    "id": "abc123xyz",
+    "title": "Curso Completo de JavaScript - 2025",
+    "channel": "CodeAcademy",
+    "channelId": "UC987654321",
+    "duration": 3600,
+    "url": "https://www.youtube.com/watch?v=abc123xyz",
+    "thumbnailUrl": "https://i.ytimg.com/vi/abc123xyz/maxresdefault.jpg",
+    "description": "Curso completo de JavaScript desde cero hasta nivel profesional. Incluye ES6+, async/await, módulos y más."
+  },
+  "processing": {
+    "downloadedAt": "2025-09-30T16:00:00.000Z",
+    "convertedAt": "2025-09-30T16:05:00.000Z",
+    "audioFormat": "mp3",
+    "audioBitrate": "320k",
+    "segmented": true,
+    "totalParts": 3,
+    "segmentDuration": 1200
+  },
+  "files": [
+    {
+      "name": "CodeAcademy-Curso-Completo-de-JavaScript-abc123xyz__part-001.mp3",
+      "size": 28800000,
+      "duration": 1200
+    },
+    {
+      "name": "CodeAcademy-Curso-Completo-de-JavaScript-abc123xyz__part-002.mp3",
+      "size": 28800000,
+      "duration": 1200
+    },
+    {
+      "name": "CodeAcademy-Curso-Completo-de-JavaScript-abc123xyz__part-003.mp3",
+      "size": 28800000,
+      "duration": 1200
+    }
+  ],
+  "errors": []
+}

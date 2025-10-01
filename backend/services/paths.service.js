@@ -1,131 +1,209 @@
 /**
  * Servicio para manejo de rutas y nombres de archivo
  * Sanitización y generación de rutas seguras
+ * Estructura: backend/output/{canal}-{titulo}-{videoId}/
  */
 
-// TODO: Importar dependencias necesarias (path, fs, etc.)
+const path = require('path');
+const fs = require('fs').promises;
 
 /**
- * TODO: Sanitizar nombre de archivo removiendo caracteres no permitidos
+ * Sanitizar nombre de archivo removiendo caracteres no permitidos
  * @param {string} filename - Nombre de archivo a sanitizar
  * @param {string} replacement - Carácter de reemplazo (default: '_')
  * @returns {string} Nombre de archivo sanitizado
  */
 function sanitizeFilename(filename, replacement = '_') {
-  // TODO: Remover caracteres no permitidos en Windows/Linux
-  // TODO: Remover caracteres especiales: <>:"/\|?*
-  // TODO: Limitar longitud máxima del nombre
-  // TODO: Remover espacios al inicio y final
-  // TODO: Reemplazar múltiples espacios por uno solo
-  // TODO: Retornar nombre sanitizado
+  if (!filename) return 'unnamed';
+  
+  // Remover caracteres especiales: <>:"/\|?*
+  let sanitized = filename.replace(/[<>:"/\\|?*\x00-\x1f]/g, replacement);
+  
+  // Remover espacios al inicio y final
+  sanitized = sanitized.trim();
+  
+  // Reemplazar múltiples espacios/guiones por uno solo
+  sanitized = sanitized.replace(/\s+/g, ' ').replace(/-+/g, '-');
+  
+  // Limitar longitud máxima del nombre (150 caracteres)
+  if (sanitized.length > 150) {
+    sanitized = sanitized.substring(0, 150);
+  }
+  
+  return sanitized || 'unnamed';
 }
 
 /**
- * TODO: Generar nombre único para archivo si ya existe
- * @param {string} basePath - Ruta base del archivo
- * @param {string} filename - Nombre de archivo deseado
- * @returns {string} Nombre de archivo único
+ * Generar nombre base para carpeta del video: {canal}-{titulo}-{videoId}
+ * @param {Object} videoInfo - Información del video (channel, title, videoId)
+ * @returns {string} Nombre base sanitizado
  */
-function generateUniqueFilename(basePath, filename) {
-  // TODO: Verificar si archivo existe
-  // TODO: Si existe, agregar sufijo numérico (1), (2), etc.
-  // TODO: Retornar nombre único
+function generateVideoBaseName(videoInfo) {
+  const channel = sanitizeFilename(videoInfo.channel || 'unknown-channel');
+  const title = sanitizeFilename(videoInfo.title || 'unknown-title');
+  const videoId = videoInfo.videoId || videoInfo.id || 'unknown-id';
+  
+  return `${channel}-${title}-${videoId}`;
 }
 
 /**
- * TODO: Generar ruta completa para archivo de descarga
- * @param {string} baseDir - Directorio base
- * @param {string} videoTitle - Título del video
- * @param {string} extension - Extensión del archivo
- * @returns {string} Ruta completa del archivo
+ * Generar carpeta de salida para un video específico
+ * @param {string} outputRoot - Directorio raíz de salida
+ * @param {Object} videoInfo - Información del video
+ * @returns {string} Ruta completa de la carpeta del video
  */
-function generateDownloadPath(baseDir, videoTitle, extension) {
-  // TODO: Sanitizar título del video
-  // TODO: Combinar con directorio base
-  // TODO: Agregar extensión
-  // TODO: Asegurar que directorio existe
-  // TODO: Retornar ruta completa
+function generateVideoFolder(outputRoot, videoInfo) {
+  const baseName = generateVideoBaseName(videoInfo);
+  return path.join(outputRoot, baseName);
 }
 
 /**
- * TODO: Generar rutas para archivos temporales
+ * Generar ruta para MP3 único (sin partes)
+ * @param {string} videoFolder - Carpeta del video
+ * @param {Object} videoInfo - Información del video
+ * @returns {string} Ruta completa para el archivo MP3
+ */
+function generateSingleMp3Path(videoFolder, videoInfo) {
+  const baseName = generateVideoBaseName(videoInfo);
+  return path.join(videoFolder, `${baseName}.mp3`);
+}
+
+/**
+ * Generar ruta para parte de MP3
+ * @param {string} videoFolder - Carpeta del video
+ * @param {Object} videoInfo - Información del video
+ * @param {number} partNumber - Número de parte
+ * @param {number} totalParts - Total de partes
+ * @returns {string} Ruta completa para la parte del MP3
+ */
+function generateMp3PartPath(videoFolder, videoInfo, partNumber, totalParts) {
+  const baseName = generateVideoBaseName(videoInfo);
+  const partStr = String(partNumber).padStart(3, '0');
+  return path.join(videoFolder, `${baseName}__part-${partStr}.mp3`);
+}
+
+/**
+ * Generar ruta para archivo ZIP
+ * @param {string} videoFolder - Carpeta del video
+ * @param {Object} videoInfo - Información del video
+ * @returns {string} Ruta completa para el archivo ZIP
+ */
+function generateZipPath(videoFolder, videoInfo) {
+  const baseName = generateVideoBaseName(videoInfo);
+  return path.join(videoFolder, `${baseName}.zip`);
+}
+
+/**
+ * Generar ruta para manifest.json
+ * @param {string} videoFolder - Carpeta del video
+ * @returns {string} Ruta completa para manifest.json
+ */
+function generateManifestPath(videoFolder) {
+  return path.join(videoFolder, 'manifest.json');
+}
+
+/**
+ * Generar nombre único para archivo si ya existe
+ * @param {string} filePath - Ruta completa del archivo
+ * @returns {Promise<string>} Nombre de archivo único
+ */
+async function generateUniqueFilename(filePath) {
+  try {
+    await fs.access(filePath);
+    // El archivo existe, generar nombre único
+    const dir = path.dirname(filePath);
+    const ext = path.extname(filePath);
+    const base = path.basename(filePath, ext);
+    
+    let counter = 1;
+    let newPath = filePath;
+    
+    while (true) {
+      newPath = path.join(dir, `${base}_(${counter})${ext}`);
+      try {
+        await fs.access(newPath);
+        counter++;
+      } catch {
+        return newPath;
+      }
+    }
+  } catch {
+    // El archivo no existe, retornar el mismo
+    return filePath;
+  }
+}
+
+/**
+ * Generar rutas para archivos temporales
  * @param {string} tmpDir - Directorio temporal
  * @param {string} jobId - ID del trabajo
  * @param {string} filename - Nombre base del archivo
  * @returns {string} Ruta para archivo temporal
  */
 function generateTempPath(tmpDir, jobId, filename) {
-  // TODO: Crear subdirectorio por jobId
-  // TODO: Combinar ruta temporal
-  // TODO: Asegurar que directorio existe
-  // TODO: Retornar ruta completa
+  return path.join(tmpDir, jobId, filename);
 }
 
 /**
- * TODO: Generar ruta para archivo de salida final
- * @param {string} outputDir - Directorio de salida
- * @param {string} videoTitle - Título del video
- * @param {boolean} isMultipart - Si es archivo multipartes (ZIP)
- * @returns {string} Ruta del archivo de salida
- */
-function generateOutputPath(outputDir, videoTitle, isMultipart = false) {
-  // TODO: Sanitizar título
-  // TODO: Determinar extensión (.mp3 o .zip)
-  // TODO: Generar nombre único si es necesario
-  // TODO: Retornar ruta completa
-}
-
-/**
- * TODO: Crear estructura de directorios si no existe
+ * Crear estructura de directorios si no existe
  * @param {string} dirPath - Ruta del directorio a crear
  * @returns {Promise<boolean>} true si se creó o ya existía
  */
 async function ensureDirectory(dirPath) {
-  // TODO: Verificar si directorio existe
-  // TODO: Crear directorio recursivamente si no existe
-  // TODO: Retornar resultado
+  try {
+    await fs.mkdir(dirPath, { recursive: true });
+    return true;
+  } catch (error) {
+    console.error(`Error creando directorio ${dirPath}:`, error);
+    return false;
+  }
 }
 
 /**
- * TODO: Limpiar archivos temporales de un trabajo
+ * Limpiar archivos temporales de un trabajo
  * @param {string} tmpDir - Directorio temporal base
  * @param {string} jobId - ID del trabajo a limpiar
  * @returns {Promise<boolean>} true si se limpió correctamente
  */
 async function cleanupTempFiles(tmpDir, jobId) {
-  // TODO: Construir ruta del directorio temporal del job
-  // TODO: Eliminar todos los archivos del directorio
-  // TODO: Eliminar el directorio
-  // TODO: Manejar errores
-  // TODO: Retornar resultado
+  try {
+    const jobTmpDir = path.join(tmpDir, jobId);
+    await fs.rm(jobTmpDir, { recursive: true, force: true });
+    return true;
+  } catch (error) {
+    console.error(`Error limpiando archivos temporales del job ${jobId}:`, error);
+    return false;
+  }
 }
 
 /**
- * TODO: Obtener extensión de archivo desde nombre
+ * Obtener extensión de archivo desde nombre
  * @param {string} filename - Nombre de archivo
  * @returns {string} Extensión (sin punto)
  */
 function getFileExtension(filename) {
-  // TODO: Extraer extensión del nombre de archivo
-  // TODO: Retornar extensión en minúsculas sin punto
+  return path.extname(filename).toLowerCase().replace('.', '');
 }
 
 /**
- * TODO: Obtener nombre base sin extensión
+ * Obtener nombre base sin extensión
  * @param {string} filename - Nombre de archivo
  * @returns {string} Nombre base sin extensión
  */
 function getBasename(filename) {
-  // TODO: Remover extensión del nombre de archivo
-  // TODO: Retornar nombre base
+  return path.basename(filename, path.extname(filename));
 }
 
 module.exports = {
   sanitizeFilename,
+  generateVideoBaseName,
+  generateVideoFolder,
+  generateSingleMp3Path,
+  generateMp3PartPath,
+  generateZipPath,
+  generateManifestPath,
   generateUniqueFilename,
-  generateDownloadPath,
   generateTempPath,
-  generateOutputPath,
   ensureDirectory,
   cleanupTempFiles,
   getFileExtension,

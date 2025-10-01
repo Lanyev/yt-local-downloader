@@ -84,25 +84,40 @@ La aplicación estará disponible en: `http://localhost:5050`
 ```
 yt-local-downloader/
 ├── backend/
-│   ├── app.js                 # Servidor Express principal
-│   ├── routes.js              # Definición de rutas API
-│   ├── controllers/           # Controladores HTTP
+│   ├── app.js                      # Servidor Express principal
+│   ├── routes.js                   # Definición de rutas API
+│   ├── controllers/                # Controladores HTTP
 │   │   ├── downloadController.js
-│   │   └── jobController.js
-│   ├── services/              # Lógica de negocio
+│   │   └── jobs.controller.js
+│   ├── services/                   # Lógica de negocio ✅
 │   │   ├── downloadService.js
-│   │   ├── ffmpegService.js
-│   │   ├── metadataService.js
-│   │   ├── fileService.js
+│   │   ├── paths.service.js       # ✅ Generación de rutas
+│   │   ├── metadata.service.js    # ✅ Gestión de manifest.json
+│   │   ├── zip.service.js         # ✅ Creación de ZIP
+│   │   ├── fileService.js         # ✅ Organización de archivos
+│   │   ├── ffmpeg.service.js
+│   │   ├── ytdlp.service.js
+│   │   ├── progress.service.js
 │   │   └── jobManager.js
-│   ├── jobs/                  # Procesos de trabajo
-│   │   └── downloadJob.js
-│   ├── tmp/                   # Archivos temporales
-│   └── output/                # Archivos finales organizados
+│   ├── jobs/                       # Procesos de trabajo
+│   │   ├── downloadJob.js
+│   │   ├── pipeline.js
+│   │   └── queue.js
+│   ├── examples/                   # 📚 Ejemplos de uso
+│   │   └── example-structure-usage.js
+│   ├── tmp/                        # 🔧 Archivos temporales
+│   │   └── {jobId}/               # Carpeta temporal por job
+│   └── output/                     # 🎯 Archivos finales
+│       └── {canal}-{titulo}-{videoId}/  # Carpeta por video
+│           ├── *.mp3              # MP3 único o partes
+│           ├── *.zip              # ZIP con las partes
+│           └── manifest.json      # Metadatos
 ├── frontend/
-│   ├── index.html             # Interfaz principal
-│   ├── main.js                # JavaScript de la aplicación
-│   └── styles.css             # Estilos CSS
+│   ├── index.html                  # Interfaz principal
+│   ├── main.js                     # JavaScript de la aplicación
+│   └── styles.css                  # Estilos CSS
+├── ESTRUCTURA.md                   # 📖 Documentación detallada
+├── ESTRUCTURA-RESUMEN.md           # 📋 Resumen visual
 ├── package.json
 ├── .env.example
 └── README.md
@@ -122,24 +137,42 @@ yt-local-downloader/
 
 ### Organización de archivos de salida
 
-Cada video descargado se organiza en:
+Cada video descargado se organiza en su propia carpeta con formato: `{canal}-{titulo}-{videoId}/`
 
 ```
 backend/output/
-└── [Nombre del Video - ID]/
-    ├── audio/
-    │   ├── [nombre].mp3           # Audio principal 320kbps
-    │   └── segments/              # Segmentos (si aplica)
-    │       ├── [nombre]_01.mp3
-    │       ├── [nombre]_02.mp3
-    │       └── ...
-    ├── video/                     # Solo si se descarga video
-    │   └── [nombre].mp4
-    ├── images/
-    │   └── thumbnail.jpg          # Carátula del video
-    ├── README.txt                 # Información del video
-    └── [Nombre del Video].zip     # ZIP con todos los archivos
+└── {canal}-{titulo}-{videoId}/              # Carpeta única por video
+    ├── {canal}-{titulo}-{videoId}.mp3       # MP3 único (sin segmentar)
+    │
+    ├── {canal}-{titulo}-{videoId}__part-001.mp3  # Parte 1 (si está segmentado)
+    ├── {canal}-{titulo}-{videoId}__part-002.mp3  # Parte 2
+    ├── {canal}-{titulo}-{videoId}__part-00N.mp3  # Parte N
+    │
+    ├── {canal}-{titulo}-{videoId}.zip       # ZIP con todas las partes
+    └── manifest.json                        # Metadatos del proceso
 ```
+
+**Ejemplo real:**
+```
+backend/output/
+└── TechChannel-Tutorial-de-Node.js-dQw4w9WgXcQ/
+    ├── TechChannel-Tutorial-de-Node.js-dQw4w9WgXcQ.mp3
+    ├── TechChannel-Tutorial-de-Node.js-dQw4w9WgXcQ.zip
+    └── manifest.json
+```
+
+**Con segmentación:**
+```
+backend/output/
+└── CodeAcademy-Curso-Completo-JavaScript-abc123xyz/
+    ├── CodeAcademy-Curso-Completo-JavaScript-abc123xyz__part-001.mp3
+    ├── CodeAcademy-Curso-Completo-JavaScript-abc123xyz__part-002.mp3
+    ├── CodeAcademy-Curso-Completo-JavaScript-abc123xyz__part-003.mp3
+    ├── CodeAcademy-Curso-Completo-JavaScript-abc123xyz.zip
+    └── manifest.json
+```
+
+> 📘 **Documentación detallada:** Ver archivos `ESTRUCTURA.md` y `ESTRUCTURA-RESUMEN.md`
 
 ## 🌐 API Endpoints
 

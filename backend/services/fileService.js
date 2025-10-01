@@ -1,18 +1,14 @@
 /**
  * Servicio para gestión de archivos y organización de salida
  * Maneja creación de carpetas, archivos ZIP y limpieza
- * 
- * TODO: Implementar funcionalidades:
- * - createOutputFolder: Crear carpeta organizada por video
- * - createZipArchive: Generar ZIP con todos los archivos del job
- * - organizeFiles: Mover archivos procesados a estructura final
- * - cleanupOldFiles: Limpiar archivos antiguos según política de retención
- * - getFileStats: Obtener información de archivos generados
+ * Estructura: backend/output/{canal}-{titulo}-{videoId}/
  */
 
 const fs = require('fs').promises;
 const path = require('path');
-const archiver = require('archiver');
+const pathsService = require('./paths.service');
+const zipService = require('./zip.service');
+const metadataService = require('./metadata.service');
 
 class FileService {
   constructor() {
@@ -21,98 +17,213 @@ class FileService {
   }
 
   /**
-   * Crea estructura de carpetas organizada para un video
-   * TODO: Crear carpeta con nombre limpio del video
-   * TODO: Crear subcarpetas (audio, video, thumbnails, etc.)
-   * TODO: Manejar nombres de archivo con caracteres especiales
-   * TODO: Evitar conflictos de nombres duplicados
+   * Crea carpeta organizada para un video específico
+   * Formato: {canal}-{titulo}-{videoId}
+   * @param {Object} videoInfo - Información del video (channel, title, videoId)
+   * @returns {Promise<string>} Ruta de la carpeta creada
    */
-  async createOutputFolder(videoTitle, jobId) {
-    // TODO: Implementar creación de carpeta de salida
-    throw new Error('TODO: Implementar createOutputFolder');
+  async createVideoFolder(videoInfo) {
+    try {
+      const videoFolder = pathsService.generateVideoFolder(this.outputRoot, videoInfo);
+      await pathsService.ensureDirectory(videoFolder);
+      console.log(`Carpeta de video creada: ${videoFolder}`);
+      return videoFolder;
+    } catch (error) {
+      console.error('Error creando carpeta de video:', error);
+      throw error;
+    }
   }
 
   /**
    * Organiza archivos procesados en la estructura final
-   * TODO: Mover MP3 principal y segmentos a carpeta audio/
-   * TODO: Mover MP4 (si existe) a carpeta video/
-   * TODO: Mover thumbnail a carpeta images/
-   * TODO: Crear archivo README con información del video
+   * @param {string} videoFolder - Carpeta destino del video
+   * @param {Object} videoInfo - Información del video
+   * @param {Array<string>} mp3Files - Lista de archivos MP3 procesados
+   * @param {Object} processInfo - Información del proceso
+   * @returns {Promise<Object>} Resultado de la organización
    */
-  async organizeFiles(jobId, files, outputFolder) {
-    // TODO: Implementar organización de archivos
-    throw new Error('TODO: Implementar organizeFiles');
-  }
+  async organizeVideoFiles(videoFolder, videoInfo, mp3Files, processInfo) {
+    try {
+      const result = {
+        videoFolder,
+        mp3Files: [],
+        zipFile: null,
+        manifestFile: null
+      };
 
-  /**
-   * Crea archivo ZIP con todos los archivos de un job
-   * TODO: Comprimir carpeta completa del video
-   * TODO: Incluir estructura de subcarpetas
-   * TODO: Optimizar nivel de compresión
-   * TODO: Mostrar progreso de compresión
-   */
-  async createZipArchive(sourceFolder, zipPath, onProgress) {
-    // TODO: Implementar creación de ZIP
-    throw new Error('TODO: Implementar createZipArchive');
-  }
+      // Mover archivos MP3 a la carpeta del video
+      for (const mp3File of mp3Files) {
+        const filename = path.basename(mp3File);
+        const destPath = path.join(videoFolder, filename);
+        
+        await fs.copyFile(mp3File, destPath);
+        result.mp3Files.push(destPath);
+        console.log(`MP3 organizado: ${destPath}`);
+      }
 
-  /**
-   * Limpia nombre de archivo/carpeta para sistema de archivos
-   * TODO: Remover caracteres no válidos
-   * TODO: Limitar longitud de nombre
-   * TODO: Reemplazar espacios según convenga
-   * TODO: Manejar caracteres Unicode
-   */
-  sanitizeFileName(fileName) {
-    // TODO: Implementar limpieza de nombres
-    return fileName.replace(/[<>:"/\\|?*]/g, '_').substring(0, 100);
+      // Crear archivo ZIP si hay múltiples partes
+      if (mp3Files.length > 1 || processInfo.createZip) {
+        const zipPath = pathsService.generateZipPath(videoFolder, videoInfo);
+        await zipService.createZip(result.mp3Files, zipPath);
+        result.zipFile = zipPath;
+        console.log(`ZIP creado: ${zipPath}`);
+      }
+
+      // Crear manifest.json
+      const manifestPath = pathsService.generateManifestPath(videoFolder);
+      const manifestData = {
+        videoId: videoInfo.videoId || videoInfo.id,
+        title: videoInfo.title,
+        channel: videoInfo.channel,
+        channelId: videoInfo.channelId,
+        duration: videoInfo.duration,
+        url: videoInfo.url,
+        thumbnailUrl: videoInfo.thumbnailUrl,
+        description: videoInfo.description,
+        downloadedAt: processInfo.downloadedAt,
+        convertedAt: processInfo.convertedAt,
+        audioFormat: 'mp3',
+        audioBitrate: '320k',
+        segmented: mp3Files.length > 1,
+        totalParts: mp3Files.length,
+        segmentDuration: processInfo.segmentDuration,
+        files: result.mp3Files.map(f => ({
+          name: path.basename(f),
+          size: 0, // Se actualizará después
+          duration: processInfo.segmentDuration || videoInfo.duration
+        })),
+        errors: processInfo.errors || []
+      };
+
+      await metadataService.createManifest(manifestPath, manifestData);
+      result.manifestFile = manifestPath;
+
+      console.log(`Archivos organizados en: ${videoFolder}`);
+      return result;
+    } catch (error) {
+      console.error('Error organizando archivos:', error);
+      throw error;
+    }
   }
 
   /**
    * Obtiene información estadística de archivos generados
-   * TODO: Calcular tamaños totales
-   * TODO: Contar archivos por tipo
-   * TODO: Calcular tiempo total de audio
+   * @param {string} folderPath - Ruta de la carpeta
+   * @returns {Promise<Object>} Estadísticas de archivos
    */
   async getFileStats(folderPath) {
-    // TODO: Implementar estadísticas de archivos
-    return {
-      totalSize: 0,
-      audioFiles: 0,
-      videoFiles: 0,
-      totalDuration: 0
-    };
+    try {
+      const files = await fs.readdir(folderPath);
+      let totalSize = 0;
+      let audioFiles = 0;
+      let videoFiles = 0;
+
+      for (const file of files) {
+        const filePath = path.join(folderPath, file);
+        const stats = await fs.stat(filePath);
+        
+        if (file.endsWith('.mp3')) {
+          audioFiles++;
+          totalSize += stats.size;
+        } else if (file.endsWith('.mp4')) {
+          videoFiles++;
+          totalSize += stats.size;
+        }
+      }
+
+      return {
+        totalSize,
+        audioFiles,
+        videoFiles,
+        totalDuration: 0 // Se calcula con ffprobe si es necesario
+      };
+    } catch (error) {
+      console.error('Error obteniendo estadísticas:', error);
+      return {
+        totalSize: 0,
+        audioFiles: 0,
+        videoFiles: 0,
+        totalDuration: 0
+      };
+    }
   }
 
   /**
    * Limpia archivos antiguos según política de retención
-   * TODO: Definir edad máxima de archivos (ej: 7 días)
-   * TODO: Limpiar tanto archivos finales como temporales
-   * TODO: Mantener log de limpieza
+   * @param {number} maxAgeDays - Edad máxima en días
+   * @returns {Promise<Object>} Resultado de la limpieza
    */
   async cleanupOldFiles(maxAgeDays = 7) {
-    // TODO: Implementar limpieza de archivos antiguos
+    try {
+      const now = Date.now();
+      const maxAge = maxAgeDays * 24 * 60 * 60 * 1000;
+      let deletedFolders = 0;
+      let freedSpace = 0;
+
+      const folders = await fs.readdir(this.outputRoot);
+
+      for (const folder of folders) {
+        const folderPath = path.join(this.outputRoot, folder);
+        const stats = await fs.stat(folderPath);
+
+        if (stats.isDirectory() && (now - stats.mtimeMs) > maxAge) {
+          // Calcular tamaño antes de eliminar
+          const folderStats = await this.getFileStats(folderPath);
+          freedSpace += folderStats.totalSize;
+
+          // Eliminar carpeta
+          await fs.rm(folderPath, { recursive: true, force: true });
+          deletedFolders++;
+          console.log(`Carpeta antigua eliminada: ${folder}`);
+        }
+      }
+
+      return {
+        deletedFolders,
+        freedSpace,
+        maxAgeDays
+      };
+    } catch (error) {
+      console.error('Error limpiando archivos antiguos:', error);
+      throw error;
+    }
   }
 
   /**
    * Verifica disponibilidad de espacio en disco
-   * TODO: Verificar espacio libre en directorio de salida
-   * TODO: Estimar espacio requerido para job
-   * TODO: Alertar si el espacio es insuficiente
+   * @param {number} estimatedSize - Tamaño estimado en bytes
+   * @returns {Promise<boolean>} true si hay espacio suficiente
    */
   async checkDiskSpace(estimatedSize) {
-    // TODO: Implementar verificación de espacio
-    return true;
+    try {
+      // TODO: Implementar verificación real de espacio en disco
+      // Por ahora, asumimos que hay espacio suficiente
+      console.log(`Verificando espacio en disco para ${estimatedSize} bytes`);
+      return true;
+    } catch (error) {
+      console.error('Error verificando espacio en disco:', error);
+      return false;
+    }
   }
 
   /**
-   * Crea archivo README con información del video
-   * TODO: Incluir metadata del video original
-   * TODO: Listar archivos generados con descripciones
-   * TODO: Incluir información de procesamiento
+   * Crea directorio temporal para un job
+   * @param {string} jobId - ID del trabajo
+   * @returns {Promise<string>} Ruta del directorio temporal
    */
-  async createReadmeFile(outputFolder, videoInfo, processInfo) {
-    // TODO: Implementar creación de README
+  async createTempDirectory(jobId) {
+    const tempDir = path.join(this.tmpRoot, jobId);
+    await pathsService.ensureDirectory(tempDir);
+    return tempDir;
+  }
+
+  /**
+   * Limpia directorio temporal de un job
+   * @param {string} jobId - ID del trabajo
+   * @returns {Promise<boolean>} true si se limpió correctamente
+   */
+  async cleanupTempDirectory(jobId) {
+    return await pathsService.cleanupTempFiles(this.tmpRoot, jobId);
   }
 }
 
